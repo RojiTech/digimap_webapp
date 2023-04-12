@@ -1,0 +1,108 @@
+from flask import Flask, render_template, request, redirect, url_for, send_file, send_from_directory
+from werkzeug.utils import secure_filename
+from haze import DarkChannel, AtmLight, TransmissionEstimate, TransmissionRefine, Recover
+
+import os
+import cv2
+import math
+import numpy as np
+
+app = Flask(__name__)
+
+# Define the upload folder and allowed file extensions
+UPLOAD_FOLDER = 'uploads'
+OUTPUT_FOLDER = 'output'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+# Check if the file extension is allowed
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Home page
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+# Upload image and process it
+@app.route('/upload', methods=['POST'])
+def upload():
+    # Check if the file is uploaded
+    if 'file' not in request.files:
+        return redirect(request.url)
+
+    file = request.files['file']
+
+    # Check if the file is allowed
+    if file and allowed_file(file.filename):
+        # Save the file to the upload folder
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(UPLOAD_FOLDER, filename))
+
+        # Process the image
+        image = cv2.imread(os.path.join(UPLOAD_FOLDER, filename))
+        I = image.astype('float64') / 255
+        dark = DarkChannel(I, 15)
+        A = AtmLight(I, dark)
+        te = TransmissionEstimate(I, A, 15)
+        t = TransmissionRefine(image, te)
+        J = Recover(I, t, A, 0.1)
+
+        # Save the processed image to the output folder
+        cv2.imwrite(os.path.join(OUTPUT_FOLDER, filename), J * 255)
+
+        # Redirect to the output page
+        return redirect(url_for('output', filename=filename))
+
+    # If the file is not allowed, redirect to the home page
+    else:
+        return redirect(request.url)
+
+# Display the output page
+@app.route('/output/<filename>')
+def output(filename):
+    return render_template('output.html', filename=filename)
+
+# Serve the uploaded files and output files
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
+@app.route('/output/<filename>')
+def output_file(filename):
+    return send_from_directory(OUTPUT_FOLDER, filename)
+
+def process_image(filename):
+    # Read the image file
+    image = cv2.imread(filename)
+
+    # Convert the image to float
+    image = image.astype('float64') / 255
+
+    # Calculate the dark channel
+    dark = DarkChannel(image, 15)
+
+    # Estimate the atmospheric light
+    A = AtmLight(image, dark)
+
+    # Estimate the transmission
+    te = TransmissionEstimate(image, A, 15)
+
+    # Refine the transmission
+    t = TransmissionRefine(image, te)
+
+    # Recover the scene radiance
+    J = Recover(image, t, A, 0.1)
+
+    # Convert the output to uint8
+    J = (J * 255).astype('uint8')
+
+    # Save the output image to disk
+    output_filename = os.path.join('output', os.path.basename(filename))
+    cv2.imwrite(output_filename, J)
+
+    # Return the output filename
+    return output_filename
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
