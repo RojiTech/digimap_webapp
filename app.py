@@ -24,89 +24,80 @@ def upload_img(filename):
 def dehazed_img(filename):
     
     return send_from_directory(app.config['DEHAZED_FOLDER'], filename)
-def DarkChannel(im,sz):
-    b,g,r = cv2.split(im)
-    dc = cv2.min(cv2.min(r,g),b);
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT,(sz,sz))
-    dark = cv2.erode(dc,kernel)
-    return dark
+def compute_dark_channel(img,radius=7):
+    h,w=img.shape[:2]
+    window_size=2*radius+1
+    b, g, r = cv2.split(img)
+    bgr_min_img = cv2.min(cv2.min(b, g), r)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (window_size,window_size))
+    dark_channel_img = cv2.erode(bgr_min_img, kernel)
+    return dark_channel_img
 
-def AtmLight(im,dark):
-    [h,w] = im.shape[:2]
-    imsz = h*w
-    numpx = int(max(math.floor(imsz/1000),1))
-    darkvec = dark.reshape(imsz);
-    imvec = im.reshape(imsz,3);
+def compute_atmosphere_light(img,dark_channel_img):
+    h,w=dark_channel_img.shape[:2]
+    num_of_candiate=int(0.001*h*w)
+    dark_channel=dark_channel_img.reshape(-1,1)[:,0 ]
+    arg_sorted=np.argsort(dark_channel)[::-1]
+    img=img.astype(np.float32)
+    atmosphere_light=np.zeros((3,))
+    for i in range(num_of_candiate):
+        index=arg_sorted[i]
+        row_index=index//w
+        col_index=index%w
+        for c in range(3):
+            atmosphere_light[c]=max(atmosphere_light[c],img[row_index,col_index][c])
+    return atmosphere_light
 
-    indices = darkvec.argsort();
-    indices = indices[imsz-numpx::]
 
-    atmsum = np.zeros([1,3])
-    for ind in range(1,numpx):
-       atmsum = atmsum + imvec[indices[ind]]
+def compute_transmission_rate(img,atmosphere_light_max,omega,dark_channel_img,guided_filter_radius,epsilon):
+    h,w=img.shape[:2]
+    img_gray=cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    zero_mat=np.zeros((h,w))
+    transmition_rate_est=cv2.max(zero_mat,np.ones_like(zero_mat)-omega*dark_channel_img/atmosphere_light_max)
+    transmission_rate = guied_filter(img_gray,transmition_rate_est, guided_filter_radius, epsilon)
+    #transmission_rate = cv2.GaussianBlur(transmition_rate_est, (guided_filter_radius, guided_filter_radius), epsilon, borderType=cv2.BORDER_REPLICATE)
+    return transmission_rate
 
-    A = atmsum / numpx;
-    return A
 
-def TransmissionEstimate(im,A,sz):
-    omega = 0.95;
-    im3 = np.empty(im.shape,im.dtype);
+def guied_filter(I,P,radius,epsilon):
+    window_size=2*radius+1
+    meanI=cv2.blur(I,(window_size,window_size))
+    meanP=cv2.blur(P,(window_size,window_size))
+    II=I**2
+    IP=I*P
+    corrI=cv2.blur(II,(window_size,window_size))
+    corrIP=cv2.blur(IP,(window_size,window_size))
+    varI=corrI-meanI**2
+    covIP=corrIP-meanI*meanP
+    a=covIP/(varI+epsilon)
+    b=meanP-a*meanI
+    meanA=cv2.blur(a,(window_size,window_size))
+    meanB=cv2.blur(b,(window_size,window_size))
+    transmission_rate=meanA*I+meanB
+    return transmission_rate
 
-    for ind in range(0,3):
-        im3[:,:,ind] = im[:,:,ind]/A[0,ind]
-
-    transmission = 1 - omega*DarkChannel(im3,sz);
-    return transmission
-
-def Guidedfilter(im,p,r,eps):
-    mean_I = cv2.boxFilter(im,cv2.CV_64F,(r,r));
-    mean_p = cv2.boxFilter(p, cv2.CV_64F,(r,r));
-    mean_Ip = cv2.boxFilter(im*p,cv2.CV_64F,(r,r));
-    cov_Ip = mean_Ip - mean_I*mean_p;
-
-    mean_II = cv2.boxFilter(im*im,cv2.CV_64F,(r,r));
-    var_I   = mean_II - mean_I*mean_I;
-
-    a = cov_Ip/(var_I + eps);
-    b = mean_p - a*mean_I;
-
-    mean_a = cv2.boxFilter(a,cv2.CV_64F,(r,r));
-    mean_b = cv2.boxFilter(b,cv2.CV_64F,(r,r));
-
-    q = mean_a*im + mean_b;
-    return q;
-
-def TransmissionRefine(im,et):
-    gray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY);
-    gray = np.float64(gray)/255;
-    r = 60;
-    eps = 0.0001;
-    t = Guidedfilter(gray,et,r,eps);
-
-    return t;
-
-def Recover(im,t,A,tx = 0.1):
-    res = np.empty(im.shape,im.dtype);
-    t = cv2.max(t,tx);
-
-    for ind in range(0,3):
-        res[:,:,ind] = (im[:,:,ind]-A[0,ind])/t + A[0,ind]
-
-    return res
+def dehaze(img,radius=7,omega=0.95,epsilon=0.0001,guided_filter_radius=25,transmission_thresh=0.1):
+    dark_channel_img=compute_dark_channel(img,radius)
+    
+    atmosphere_light=compute_atmosphere_light(img,dark_channel_img)
+    transmission_rate=compute_transmission_rate(img,np.max(atmosphere_light),omega,dark_channel_img,guided_filter_radius=guided_filter_radius,epsilon=epsilon)
+    transmission_rate[transmission_rate<transmission_thresh]=transmission_thresh
+    
+    dehaze_img=np.zeros_like(img)
+    for c in range(3):
+        dehaze_img[:,:,c]=(img[:,:,c]-atmosphere_light[c])/transmission_rate+atmosphere_light[c]
+    dehaze_img[dehaze_img>1]=1
+    dehaze_img[dehaze_img<0]=0
+    return dehaze_img
 
 def dehaze_function(img):
     
-    img_8bit = cv2.convertScaleAbs(img)
-    I = img_8bit.astype('float32')/255;
+    img=img.astype(np.float32)
+    img/=255
+    dehaze_img=dehaze(img,radius=3)
 
-    dark = DarkChannel(I,15);
-    A = AtmLight(I,dark);
-    te = TransmissionEstimate(I,A,15);
-    t = TransmissionRefine(I,te);
-    J = Recover(I,t,A,0.1);
-    J = (J * 255).astype('uint8')
 
-    return J
+    return dehaze_img*255
 
 @app.route('/', methods=['GET'])
 def index():
