@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
+    <style>
+        <style>
+        /* Hide the "choose file" text */
+        
+        input[type="file"]::file-selector-button {
+            visibility: hidden;
+            height: 0;
+        }
+        /* Style the upload button */
+        
+        .upload-btn {
+            display: inline-block;
+            padding: 8px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #4caf50;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            margin-right: 10px;
+            /* Add margin to separate from dehaze button */
+        }
+        
+        .upload-btn:hover {
+            background-color: #43a047;
+        }
+    </style>
+
+</head>
+
+<body>
+    <nav>
+        <div class="menu">
+            <div class="logo">
+                <a href="#">Image Dehazing</a>
+            </div>
+            <ul>
+                <li><a href="#">Clemente</a></li>
+                <li><a href="#">Olonan</a></li>
+                <li><a href="#">Villarama</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="img"></div>
+    <div class="center">
+        <div class="title">Image Dehazing</div>
+        <div class="sub_title">Try It Now!</div>
+        <div class="btns">
+            <form action="/process_image" method="post" enctype="multipart/form-data">
+                <label for="image" class="upload-btn">
+                    <i class="fas fa-upload"></i>
+                    Upload
+                </label>
+                <input type="file" id="image" name="image" class="file-upload-input" />
+                <input type="submit" value="Dehaze" class="dehaze-btn" />
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
+
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
+</head>
+
+<body>
+    <nav>
+        <div class="menu">
+            <div class="logo">
+                <a href="#">Image Dehazing</a>
+            </div>
+            <ul>
+                <li><a href="#">Clemente</a></li>
+                <li><a href="#">Olonan</a></li>
+                <li><a href="#">Villarama</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="img"></div>
+    <div class="center">
+        <div class="title">Image Dehazing</div>
+        <div class="sub_title">Try It Now!</div>
+        <div class="btns">
+            <form action="/process_image" method="post" enctype="multipart/form-data">
+                <label for="image" class="upload-btn">
+                    <i class="fas fa-upload"></i>
+                    Upload
+                </label>
+                <input type="file" id="image" name="image" class="file-upload-input" />
+                <input type="submit" value="Dehaze" class="dehaze-btn" />
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>
