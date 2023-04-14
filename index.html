@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" />
     <style>
+        <style>
         /* Hide the "choose file" text */
         
         input[type="file"]::file-selector-button {
@@ -26,12 +27,15 @@
             border-radius: 5px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
             cursor: pointer;
+            margin-right: 10px;
+            /* Add margin to separate from dehaze button */
         }
         
         .upload-btn:hover {
             background-color: #43a047;
         }
     </style>
+
 </head>
 
 <body>
@@ -49,7 +53,7 @@
     </nav>
     <div class="img"></div>
     <div class="center">
-        <div class="title">Image Dehazing Converter</div>
+        <div class="title">Image Dehazing</div>
         <div class="sub_title">Try It Now!</div>
         <div class="btns">
             <form action="/process_image" method="post" enctype="multipart/form-data">
@@ -92,7 +96,7 @@
     </nav>
     <div class="img"></div>
     <div class="center">
-        <div class="title">Image Dehazing Converter</div>
+        <div class="title">Image Dehazing</div>
         <div class="sub_title">Try It Now!</div>
         <div class="btns">
             <form action="/process_image" method="post" enctype="multipart/form-data">
