@@ -1,108 +1,180 @@
-from flask import Flask, render_template, request, redirect, url_for, send_file, send_from_directory
-from werkzeug.utils import secure_filename
-from haze import DarkChannel, AtmLight, TransmissionEstimate, TransmissionRefine, Recover
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
 
-import os
-import cv2
-import math
-import numpy as np
+::selection {
+    color: #000;
+    background: #fff;
+}
 
-app = Flask(__name__)
+input[type="file"]::-webkit-file-upload-button {
+    display: none;
+}
 
-# Define the upload folder and allowed file extensions
-UPLOAD_FOLDER = 'uploads'
-OUTPUT_FOLDER = 'output'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+nav {
+    position: fixed;
+    background: #1b1b1b;
+    width: 100%;
+    padding: 10px 0;
+    z-index: 12;
+}
 
-# Check if the file extension is allowed
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+nav .menu {
+    max-width: 1250px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
 
-# Home page
-@app.route('/')
-def index():
-    return render_template('index.html')
+.menu .logo a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 35px;
+    font-weight: 600;
+}
 
-# Upload image and process it
-@app.route('/upload', methods=['POST'])
-def upload():
-    # Check if the file is uploaded
-    if 'file' not in request.files:
-        return redirect(request.url)
+.menu ul {
+    display: inline-flex;
+}
 
-    file = request.files['file']
+.menu ul li {
+    list-style: none;
+    margin-left: 7px;
+}
 
-    # Check if the file is allowed
-    if file and allowed_file(file.filename):
-        # Save the file to the upload folder
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(UPLOAD_FOLDER, filename))
+.menu ul li:first-child {
+    margin-left: 0px;
+}
 
-        # Process the image
-        image = cv2.imread(os.path.join(UPLOAD_FOLDER, filename))
-        I = image.astype('float64') / 255
-        dark = DarkChannel(I, 15)
-        A = AtmLight(I, dark)
-        te = TransmissionEstimate(I, A, 15)
-        t = TransmissionRefine(image, te)
-        J = Recover(I, t, A, 0.1)
+.menu ul li a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 500;
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
 
-        # Save the processed image to the output folder
-        cv2.imwrite(os.path.join(OUTPUT_FOLDER, filename), J * 255)
+.menu ul li a:hover {
+    background: #fff;
+    color: black;
+}
 
-        # Redirect to the output page
-        return redirect(url_for('output', filename=filename))
+.img {
+    background: url('gradient.jpeg') no-repeat;
+    width: 100%;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
 
-    # If the file is not allowed, redirect to the home page
-    else:
-        return redirect(request.url)
+.img::before {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+}
 
-# Display the output page
-@app.route('/output/<filename>')
-def output(filename):
-    return render_template('output.html', filename=filename)
+.center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    padding: 0 20px;
+    text-align: center;
+}
 
-# Serve the uploaded files and output files
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
+.center .title {
+    color: #fff;
+    font-size: 55px;
+    font-weight: 600;
+}
 
-@app.route('/output/<filename>')
-def output_file(filename):
-    return send_from_directory(OUTPUT_FOLDER, filename)
+.center .sub_title {
+    color: #fff;
+    font-size: 52px;
+    font-weight: 600;
+}
 
-def process_image(filename):
-    # Read the image file
-    image = cv2.imread(filename)
+.center .btns {
+    margin-top: 20px;
+}
 
-    # Convert the image to float
-    image = image.astype('float64') / 255
+.btns-wrapper {
+    display: flex;
+    justify-content: center;
+}
 
-    # Calculate the dark channel
-    dark = DarkChannel(image, 15)
+.center .btns button {
+    height: 55px;
+    width: 170px;
+    border-radius: 5px;
+    border
+}
 
-    # Estimate the atmospheric light
-    A = AtmLight(image, dark)
 
-    # Estimate the transmission
-    te = TransmissionEstimate(image, A, 15)
+/* Style the Dehaze button */
 
-    # Refine the transmission
-    t = TransmissionRefine(image, te)
+.dehaze-btn {
+    display: inline-block;
+    padding: 8px 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #008CBA;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    margin-top: 20px;
+}
 
-    # Recover the scene radiance
-    J = Recover(image, t, A, 0.1)
+.dehaze-btn:hover {
+    background-color: #006F8C;
+}
 
-    # Convert the output to uint8
-    J = (J * 255).astype('uint8')
 
-    # Save the output image to disk
-    output_filename = os.path.join('output', os.path.basename(filename))
-    cv2.imwrite(output_filename, J)
+/* Center the buttons */
 
-    # Return the output filename
-    return output_filename
+.btns {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
 
-if __name__ == '__main__':
-    app.run(debug=True)
 
+/* Center the upload and dehaze buttons */
+
+.upload-btn-wrapper,
+.dehaze-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+/* Move the dehaze button below the upload button */
+
+.dehaze-btn {
+    margin-top: 20px;
+}
+
+
+/* Move the upload and dehaze buttons to the middle */
+
+.upload-btn-wrapper,
+.dehaze-btn {
+    margin: 0 auto;
+}
