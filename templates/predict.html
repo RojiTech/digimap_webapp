@@ -1,5 +1,6 @@
 {% extends "base.html" %} {% block content %}
 
+<a href="{{ url_for('dehazed_img', filename=dehazed_file) }}" download class="download-button">DOWNLOAD RESULTS</a>
 <div class="float-container">
 
     <div class="float-child">
@@ -9,12 +10,33 @@
     
     <div class="float-child">
         <h2 class="a">Dehazed Image</h2>
+          
+      
+
+    
       <div class="blue"><img src="{{ url_for('dehazed_img', filename=dehazed_file) }}" class="img-fluid"></div>
+      
     </div>
     
-
+    
    
   </div>
- 
+  <style>
+    .download-button {
+      display: block;
+      margin: 20px auto 0;
+      padding: 10px 20px;
+      background-color: #008CBA;
+      color: #fff;
+      text-decoration: none;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      text-align: center;
+      width:200px
+    }
+</style>
+
 
 {% endblock %}

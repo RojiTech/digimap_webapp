@@ -125,14 +125,21 @@ def predict():
         img = cv2.imread(file_path)
         dehaze_fname =file_name + "_dehaze_image.jpg"
         dehaze_final = dehaze_function(img)
+        #dehaze_path = os.path.join(
+        #    basepath, 'dehazed_images', secure_filename(dehaze_fname))
         dehaze_path = os.path.join(
-            basepath, 'dehazed_images', secure_filename(dehaze_fname))
+            basepath, app.config['DEHAZED_FOLDER'], dehaze_fname)
         fname=os.path.basename(dehaze_path)
         print(fname)
         cv2.imwrite(dehaze_path,dehaze_final)
         return render_template('predict.html',file_name=file_name, dehazed_file=fname)
 
     return ""
+
+@app.route('/download/<filename>')
+def download_file(filename):
+    return send_from_directory(app.config['DEHAZED_FOLDER'], filename, as_attachment=True)
+
 
 if __name__ == '__main__':
         app.run(debug=True, host="localhost", port=8080)
