@@ -3,6 +3,60 @@
 
 
 <h2></h2>
+    <style>
+        /* Hide the "choose file" text */
+        
+        input[type="file"]::file-selector-button {
+            visibility: hidden;
+            height: 0;
+        }
+        
+        /* Style the upload button */
+        
+        .upload-btn {
+            display: inline-block;
+            padding: 8px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #FF69B4;
+            /* change to pink */
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            margin-right: 10px;
+            /* Add margin to separate from dehaze button */
+        }
+        
+        .upload-btn:hover {
+            background-color: #43a047;
+        }
+        
+        /* Style the Dehaze my image button */
+     
+        .dehaze-btn {
+            display: inline-block;
+            padding: 8px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #FF6600;
+            /* change to orange */
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+        
+        .dehaze-btn:hover {
+            background-color: #e53935;
+        }
+        
+        .btns {
+            text-align: center;
+        }
+    </style>
 
 <div>
     <form id="upload-file" action="/predict" method="POST" enctype="multipart/form-data">
