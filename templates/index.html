@@ -1,94 +1,116 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
 
+{% block content %}
 
-
-<h2></h2>
-    <style>
-        /* Hide the "choose file" text */
-        
-        input[type="file"]::file-selector-button {
-            visibility: hidden;
-            height: 0;
-        }
-        
-        /* Style the upload button */
-        
-        .upload-btn {
-            display: inline-block;
-            padding: 8px 20px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            background-color: #FF69B4;
-            /* change to pink */
-            border: none;
-            border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            margin-right: 10px;
-            /* Add margin to separate from dehaze button */
-        }
-        
-        .upload-btn:hover {
-            background-color: #43a047;
-        }
-        
-        /* Style the Dehaze my image button */
-     
-        .dehaze-btn {
-            display: inline-block;
-            padding: 8px 20px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #fff;
-            background-color: #FF6600;
-            /* change to orange */
-            border: none;
-            border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-        }
-        
-        .dehaze-btn:hover {
-            background-color: #e53935;
-        }
-        
-        .btns {
-            text-align: center;
-        }
-    </style>
-
-<div>
     <form id="upload-file" action="/predict" method="POST" enctype="multipart/form-data">
-        <center> {% for message in get_flashed_messages() %}
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <center>
+        {% for message in get_flashed_messages() %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
+        </div>
+        {% endfor %}
+      </center>
+
+      <div class="card border-primary mb-3">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Upload Image</h4>
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center" style="height: 450px;">
+          <form id="upload-file" action="/predict" method="POST" enctype="multipart/form-data">
+            <div class="row">
+              <div class="col-md-6">
+                <input type="file" id="file" name="file" required accept=".jpg, .jpeg, .png" style="display: none;">
+                <label for="file" style="margin-bottom:auto; font-size: 20px; padding: 10px 20px;" class="btn btn-primary">Choose File</label>
+              </div>
+              <div class="col-md-6">
+                <input type="submit" class="btn btn-primary" style="margin-bottom:auto; font-size: 20px; padding: 10px 20px;" name="submit" value="Dehaze my Image">
+              </div>
             </div>
+          </form>
+        </div>
+      </div>
+    </form>
+    <div class="loader" style="display:none;"></div>
 
-            {% endfor %}
-        </center>
-
-        <form action="/process_image" method="post" enctype="multipart/form-data">
-            <label for="image" class="upload-btn">
-                <i class="fas fa-upload"></i>
-                Upload
-            </label>
-            <input type="file" id="image" name="image" class="file-upload-input" />
-            <input type="submit" name="submit" value="Dehaze My Image" class="dehaze-btn" />
-        </form>
-</div>
-
-</form>
-
-<div class="loader" style="display:none;"></div>
-
-<h3 id="result">
-    <span> </span>
-</h3>
+    <h3 id="result" class="text-center">
+      <span> </span>
+    </h3>
+  </div>
 
 </div>
+
+<style>
+
+  body {
+    background: linear-gradient(to bottom, #F9D5E5, #FDF0D5, #FFFFE0, #FFE0B2, #E1BEE7);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  .card {
+    max-width: 800px;
+    height: 450px;
+    margin: auto;
+    margin-top: 10vh;
+    background-color: #f8f9fa;
+    border: none;
+    box-shadow: 0px 0px 30px 0px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+  }
+
+  input[type="file"] {
+    margin: 20px 0;
+  }
+
+  .loader {
+    border: 16px solid #f3f3f3;
+    border-top: 16px solid #3498db;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  #result {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 10vh;
+    color: #fff;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+    font-size: 2em;
+    font-weight: bold;
+  }
+</style>
 
 {% endblock %}
