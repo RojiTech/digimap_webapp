@@ -1,3 +1,6 @@
+#https://github.com/fengyang95/tiny_cv/blob/f8ae0cb097b31cbe2e065ef6939374c39ee5f3e0/tinycv/haze_removal.ipynb <--Implementation used
+#He K, Sun J, Tang X. Single image haze removal using dark channel prior[C]// Computer Vision and Pattern Recognition, 2009. CVPR 2009. IEEE Conference on. IEEE, 2009:1956-1963.
+
 import sys
 import os, shutil
 import glob
